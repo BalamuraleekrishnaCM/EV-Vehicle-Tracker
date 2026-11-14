@@ -69,3 +69,6 @@ This project welcomes community contributions under [CONTRIBUTING.md](CONTRIBUTI
 - [docs/RELEASE_POLICY.md](docs/RELEASE_POLICY.md) — official release and store publication controls.
 
 **Store publication is deferred.** The maintainer must explicitly approve merges and future official releases. The foundation code is in a draft PR and has not yet passed build validation.
+
+## Minimal EV dashboard UI
+The light-green, mobile-first dashboard implementation is proposed in `feat/minimal-ev-dashboard-architecture` (not merged). It includes Home, Garage, Charge, Trips and More navigation, shared design tokens, reusable cards and safe empty states. The garage and trip energy estimate use existing local logic; live charger discovery, real telemetry and health scores are **not implemented**. See [UX architecture](docs/UX_ARCHITECTURE.md) for detailed feature design, data boundaries and phased delivery. Do not treat concept screenshots as real vehicle measurements.
