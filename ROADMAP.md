@@ -18,3 +18,9 @@ Each milestone requires tests, offline functionality, privacy review, documentat
 
 ### Community proposals
 Support new manufacturers and vehicle categories through optional model metadata and independent feature modules, without requiring official vehicle APIs.
+
+## Charging discovery and trip planner expansion
+- **M10 — Nearby charging:** opt-in GPS, manual location, OpenStreetMap map/list, station directory adapter, connector filtering, cache, favourites and attribution.
+- **M11 — Route planning:** start/end/waypoints, routing provider adapter, station corridor search, battery reserve, charging stop selection, detour and time/cost estimates.
+- **M12 — Prompt planner:** deterministic prompt parsing with confirmation screen, editable inputs, no mandatory AI account/API.
+- **M13 — Safety and quality:** station freshness indicators, unknown availability warnings, no-compatible-station handling, permission-denied and offline states, tests for route feasibility and energy calculations.
