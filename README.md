@@ -45,3 +45,13 @@ Independent community project, not affiliated with any vehicle manufacturer. Veh
 
 ## License
 MIT — see LICENSE once added.
+
+## Nearby charging & smart trip planning (planned)
+- Permission-based device location, with manual city/map-pin selection when GPS is unavailable or denied.
+- Nearby charger map/list with vehicle connector compatibility, network, power, distance and last-known data freshness.
+- Route-aware charging stops, detours, energy/range estimates, battery reserve and estimated cost.
+- Prompt entry, e.g. "Drive from Kochi to Kozhikode starting at 60%, keep 20% reserve and stop at compatible chargers." Initial version uses deterministic parsing, not a mandatory paid AI service.
+- Open external navigation, save favourites, cache station metadata, and allow user feedback.
+- Charger listings are not guarantees of availability or working status; verify before travelling.
+
+See [docs/CHARGING_AND_TRIP_PLANNER.md](docs/CHARGING_AND_TRIP_PLANNER.md).
