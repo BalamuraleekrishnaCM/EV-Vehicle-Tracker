@@ -60,3 +60,12 @@ See [docs/CHARGING_AND_TRIP_PLANNER.md](docs/CHARGING_AND_TRIP_PLANNER.md).
 A Flutter foundation is being developed in a review branch. Current functionality is limited; check [implementation status](docs/IMPLEMENTATION_STATUS.md) before claiming a feature works. The complete phased plan is in [ROADMAP.md](ROADMAP.md).
 
 This project welcomes community contributions under [CONTRIBUTING.md](CONTRIBUTING.md), follows the [SDLC policy](docs/SDLC.md), and requires maintainer approval for official releases under [RELEASE_POLICY.md](docs/RELEASE_POLICY.md). Community PRs must pass checks and receive owner review; GitHub branch protection must be enabled by the repository owner to enforce that rule.
+
+## Project task tracking
+- [TODO.md](TODO.md) — prioritized development checklist, linked to GitHub issues.
+- [ROADMAP.md](ROADMAP.md) — release milestones and acceptance gates.
+- [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) — implemented versus planned, with verification caveats.
+- [docs/SDLC.md](docs/SDLC.md) — development process, reviews and quality requirements.
+- [docs/RELEASE_POLICY.md](docs/RELEASE_POLICY.md) — official release and store publication controls.
+
+**Store publication is deferred.** The maintainer must explicitly approve merges and future official releases. The foundation code is in a draft PR and has not yet passed build validation.
