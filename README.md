@@ -55,3 +55,8 @@ MIT — see LICENSE once added.
 - Charger listings are not guarantees of availability or working status; verify before travelling.
 
 See [docs/CHARGING_AND_TRIP_PLANNER.md](docs/CHARGING_AND_TRIP_PLANNER.md).
+
+## Development and governance
+A Flutter foundation is being developed in a review branch. Current functionality is limited; check [implementation status](docs/IMPLEMENTATION_STATUS.md) before claiming a feature works. The complete phased plan is in [ROADMAP.md](ROADMAP.md).
+
+This project welcomes community contributions under [CONTRIBUTING.md](CONTRIBUTING.md), follows the [SDLC policy](docs/SDLC.md), and requires maintainer approval for official releases under [RELEASE_POLICY.md](docs/RELEASE_POLICY.md). Community PRs must pass checks and receive owner review; GitHub branch protection must be enabled by the repository owner to enforce that rule.
