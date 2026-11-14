@@ -55,3 +55,17 @@ All contributions use issues and pull requests. @BalamuraleekrishnaCM approves m
 - [ ] Wire charging, trip logs, health and analytics to structured SQLite models and migrations.
 - [ ] Implement live station provider, map, routing and charger compatibility.
 - [ ] Add accessibility, widget tests, offline/error handling and responsive tablet layouts.
+
+## Full-stack architecture implementation backlog
+- [x] Document full frontend/backend feature boundaries, data entities and provider contracts (design only).
+- [x] Add architecture decision records and security/test strategy (design only).
+- [x] Add optional Supabase SQL schema **draft** with owner-scoped RLS (not deployed/tested).
+- [x] Add read-only telemetry and routing provider interfaces with offline contracts (unverified tests).
+- [ ] Generate native Flutter Android/iOS scaffolding; run format/analyze/tests/build.
+- [ ] Implement SQLite schema migrations and structured repositories for all entities.
+- [ ] Wire screens to real use cases, forms, loading/empty/error states and accessible navigation.
+- [ ] Implement and contract-test external charging, routing and geocoding adapters.
+- [ ] Implement opt-in sync with conflict handling, RLS isolation tests and private storage policies.
+- [ ] Configure GitHub branch protection, status checks, code owner approval and security scans.
+- [ ] Run Android/iOS end-to-end tests and owner-approved GitHub beta release.
+- [ ] Store publication remains deferred.
