@@ -34,3 +34,11 @@ garage, charging, trips, expenses, maintenance, finance, documents, analytics, s
 
 ## Testing
 Unit tests for calculations and migrations; widget tests for entry forms; integration tests for backup/restore and multi-vehicle isolation. CI runs formatting, analysis and tests.
+
+## Geolocation, maps and routing extension (planned)
+- UI: nearby charger map/list, filters, route preview, prompt entry, editable plan and charging stops.
+- Interfaces: LocationProvider, ChargingStationProvider, RoutingProvider, TripPromptParser, EnergyEstimator and ChargeStopOptimizer.
+- Default implementation candidates: geolocator (permission-based GPS), flutter_map + OpenStreetMap tiles, Open Charge Map directory, and a configurable routing provider. Verify each provider's current terms, quotas, attribution and geographic coverage before integration.
+- Local tables: charging_stations_cache, favourite_stations, planned_trips, planned_stops, connector_preferences. Cached data must include source and retrieval timestamp.
+- Network is required for fresh station discovery and route calculations; historical records remain fully offline. Never silently fall back to stale stations without labelling them.
+- Safety: distinguish observed vehicle efficiency from assumptions; apply user-defined reserve; do not infer charger uptime from map presence; warn when no feasible compatible stops are found.
