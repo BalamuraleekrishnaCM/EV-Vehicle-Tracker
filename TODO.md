@@ -45,3 +45,13 @@
 
 ## Governance
 All contributions use issues and pull requests. @BalamuraleekrishnaCM approves merges and official releases. A checklist is not an authorization to merge or publish. Keep TODO, README, ROADMAP, implementation status and issues aligned with verified functionality.
+
+## Minimal EV dashboard UI workstream
+- [x] Implement light EV theme and reusable UI primitives (code added; build verification pending).
+- [x] Implement five-tab navigation shell and local garage entry point (code added; build verification pending).
+- [x] Add safe charging/health/analytics placeholders without fake live data.
+- [x] Add editable trip energy estimate UI using domain calculations.
+- [ ] Validate dashboard on Flutter SDK, run analyzer/tests and fix layout/overflow errors.
+- [ ] Wire charging, trip logs, health and analytics to structured SQLite models and migrations.
+- [ ] Implement live station provider, map, routing and charger compatibility.
+- [ ] Add accessibility, widget tests, offline/error handling and responsive tablet layouts.
