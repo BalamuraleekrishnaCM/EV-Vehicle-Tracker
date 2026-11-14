@@ -72,3 +72,6 @@ This project welcomes community contributions under [CONTRIBUTING.md](CONTRIBUTI
 
 ## Minimal EV dashboard UI
 The light-green, mobile-first dashboard implementation is proposed in `feat/minimal-ev-dashboard-architecture` (not merged). It includes Home, Garage, Charge, Trips and More navigation, shared design tokens, reusable cards and safe empty states. The garage and trip energy estimate use existing local logic; live charger discovery, real telemetry and health scores are **not implemented**. See [UX architecture](docs/UX_ARCHITECTURE.md) for detailed feature design, data boundaries and phased delivery. Do not treat concept screenshots as real vehicle measurements.
+
+## Full-stack architecture and SDLC
+The proposed end-to-end design is in [Full-stack architecture](docs/FULLSTACK_ARCHITECTURE.md), [API contracts](docs/API_CONTRACTS.md), [Test strategy](docs/TEST_STRATEGY.md), and [SDLC checklist](docs/SDLC_CHECKLIST.md). [Architecture decisions](docs/ADRS/) document local-first storage and vehicle adapter safety. An **unapplied** optional backend draft with owner-scoped RLS is in [backend/supabase/schema_draft.sql](backend/supabase/schema_draft.sql). None of this implies a live Supabase deployment, verified builds, or completed feature modules. Store publication remains deferred.
