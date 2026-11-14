@@ -1,0 +1,21 @@
+name: Security hygiene
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  secret-pattern-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for common committed credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nEI '(-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|service_role[[:space:]]*[:=][[:space:]]*[^[:space:]]+)' -- ':!*.md'; then
+            echo 'Potential credential found; remove it and rotate affected secrets.'
+            exit 1
+          fi
+          echo 'No simple credential patterns found (not a substitute for secret scanning).'
