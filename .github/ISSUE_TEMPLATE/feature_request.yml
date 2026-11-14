@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest a feature for cars, scooters or both
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: vehicles
+    attributes:
+      label: Vehicle applicability
+      options: ["Both", "Electric car", "Electric scooter"]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria

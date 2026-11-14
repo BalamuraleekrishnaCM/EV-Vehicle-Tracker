@@ -24,3 +24,19 @@ Support new manufacturers and vehicle categories through optional model metadata
 - **M11 — Route planning:** start/end/waypoints, routing provider adapter, station corridor search, battery reserve, charging stop selection, detour and time/cost estimates.
 - **M12 — Prompt planner:** deterministic prompt parsing with confirmation screen, editable inputs, no mandatory AI account/API.
 - **M13 — Safety and quality:** station freshness indicators, unknown availability warnings, no-compatible-station handling, permission-denied and offline states, tests for route feasibility and energy calculations.
+
+## End-to-end product delivery plan (owner-approved milestones)
+
+| Stage | Scope | Release gate |
+|---|---|---|
+| Foundation | Flutter scaffold, Android/iOS targets, navigation, theme, tests, CI, contribution governance | Builds and CI green |
+| Ownership | Multi-EV garage, charging, trips, expenses, finance, service, documents, backups | CRUD and migration tests |
+| Discovery | Location permission/manual location, map, station directory, connector compatibility | Provider attribution and real-device tests |
+| Journey | Prompt-to-plan, route geometry, energy prediction, feasible charger stops and backups | Conservative reserve and failure cases |
+| Connectivity | Opt-in BLE scan, adapter profiles, selected OBD read-only diagnostics, official manufacturer APIs where permitted | Hardware validation, consent and security review |
+| Vehicle health | Fault log, service case evidence, OTA timeline, warranty, reminders and reliability trends | No unsupported diagnoses |
+| Community | Opt-in reports and moderation, accessibility, localization, plugin documentation | Abuse/privacy review |
+| Release | Android/iOS signing, store policies, screenshots, privacy disclosures, beta, security checks | Explicit owner approval |
+
+### Release governance
+No automatic store publication. Contributors submit PRs; the owner approves merges and official releases. CODEOWNERS is a review request, not enforcement until GitHub branch rules are configured. See [docs/SDLC.md](docs/SDLC.md) and [docs/RELEASE_POLICY.md](docs/RELEASE_POLICY.md).
