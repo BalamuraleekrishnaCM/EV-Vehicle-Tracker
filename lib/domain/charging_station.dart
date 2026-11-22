@@ -1,3 +1,5 @@
+import 'routing_provider.dart';
+
 class ChargingStation {
   const ChargingStation({
     required this.id,
@@ -15,6 +17,7 @@ class ChargingStation {
   final List<String> connectorTypes;
   final double? powerKw;
   final DateTime? lastVerifiedAt;
+  GeoPoint get point => GeoPoint(latitude, longitude);
 }
 
 abstract interface class ChargingStationProvider {

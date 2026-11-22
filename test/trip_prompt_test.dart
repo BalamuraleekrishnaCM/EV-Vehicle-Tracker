@@ -10,6 +10,32 @@ void main() {
     expect(plan.socPercent, 60);
     expect(plan.reservePercent, 20);
   });
+  test('parses drive and plan prefixes and rejects invalid percentage', () {
+    expect(
+      parseTripPrompt(
+        'Drive from Kochi to Kozhikode starting at 60%, keep 20% reserve',
+      )?.origin,
+      'Kochi',
+    );
+    expect(
+      parseTripPrompt('Plan Kochi to Thrissur with 45% battery')?.destination,
+      'Thrissur',
+    );
+    expect(parseTripPrompt('from Kochi to Thrissur with -1%'), isNull);
+  });
+  test('respects a reserve written after the battery value', () {
+    final parsed = parseTripPrompt(
+      'Plan Kochi to Thrissur with 45% battery and 30% reserve',
+    );
+    expect(parsed?.socPercent, 45);
+    expect(parsed?.reservePercent, 30);
+    final reserveOnly = parseTripPrompt(
+      'Plan Kochi to Thrissur with 30% reserve',
+    );
+    expect(reserveOnly?.socPercent, isNull);
+    expect(reserveOnly?.reservePercent, 30);
+  });
+
   test('returns null for ambiguous route', () {
     expect(parseTripPrompt('take me somewhere'), isNull);
   });

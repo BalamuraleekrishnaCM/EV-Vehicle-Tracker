@@ -1,265 +1,382 @@
 import 'package:flutter/material.dart';
+
 import '../../data/local_store.dart';
-import '../../domain/vehicle.dart';
 import '../../domain/ownership_record.dart';
-import '../../domain/energy_estimator.dart';
-import '../../domain/trip_prompt.dart';
+import '../../domain/vehicle.dart';
+import 'record_editor.dart';
+
+String vehicleName(EvVehicle vehicle) => [
+  vehicle.brand,
+  vehicle.model,
+  vehicle.variant,
+].where((part) => part.isNotEmpty).join(' ');
+
+Future<bool> confirmAction(
+  BuildContext context,
+  String title,
+  String message,
+) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    ) ??
+    false;
 
 class GarageScreen extends StatefulWidget {
   const GarageScreen({super.key, required this.store});
   final LocalStore store;
+
   @override
   State<GarageScreen> createState() => _GarageScreenState();
 }
 
 class _GarageScreenState extends State<GarageScreen> {
-  List<EvVehicle> _vehicles = [];
-  bool _loading = true;
+  late Future<List<EvVehicle>> vehicles = widget.store.vehicles();
 
-  @override
-  void initState() {
-    super.initState();
-    _refresh();
-  }
+  void refresh() => setState(() => vehicles = widget.store.vehicles());
 
-  Future<void> _refresh() async {
-    final vehicles = await widget.store.vehicles();
-    if (mounted) setState(() { _vehicles = vehicles; _loading = false; });
-  }
-
-  Future<void> _addVehicle() async {
-    final brand = TextEditingController();
-    final model = TextEditingController();
-    final capacity = TextEditingController();
-    var type = VehicleType.scooter;
-    final result = await showDialog<EvVehicle>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add electric vehicle'),
-          content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              DropdownButtonFormField<VehicleType>(
-                initialValue: type,
-                decoration: const InputDecoration(labelText: 'Vehicle type'),
-                items: VehicleType.values.map((value) => DropdownMenuItem(
-                  value: value, child: Text(value.name))).toList(),
-                onChanged: (value) => setDialogState(() => type = value ?? type),
-              ),
-              TextField(controller: brand, decoration: const InputDecoration(labelText: 'Brand')),
-              TextField(controller: model, decoration: const InputDecoration(labelText: 'Model')),
-              TextField(controller: capacity, keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Battery capacity (kWh)')),
-            ]),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-            FilledButton(onPressed: () {
-              final kwh = double.tryParse(capacity.text.trim());
-              if (brand.text.trim().isEmpty || model.text.trim().isEmpty ||
-                  kwh == null || !kwh.isFinite || kwh <= 0) return;
-              Navigator.pop(context, EvVehicle(type: type, brand: brand.text.trim(),
-                model: model.text.trim(), batteryKwh: kwh));
-            }, child: const Text('Save')),
-          ],
-        ),
+  Future<void> edit([EvVehicle? vehicle]) async {
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VehicleEditor(store: widget.store, vehicle: vehicle),
       ),
     );
-    brand.dispose();
-    model.dispose();
-    capacity.dispose();
-    if (result == null) return;
-    await widget.store.addVehicle(result);
-    await _refresh();
+    if (mounted && saved == true) refresh();
   }
 
-  void _openVehicle(EvVehicle vehicle) {
-    Navigator.push(context, MaterialPageRoute<void>(
-      builder: (_) => VehicleRecordsScreen(vehicle: vehicle, store: widget.store),
-    ));
-  }
-
-  void _openTripPlanner() {
-    Navigator.push(context, MaterialPageRoute<void>(
-      builder: (_) => const TripEstimateScreen(),
-    ));
+  Future<void> manage(String action, EvVehicle vehicle) async {
+    if (action == 'Edit') {
+      await edit(vehicle);
+      return;
+    }
+    if (action == 'Delete') {
+      if (!await confirmAction(
+        context,
+        'Delete vehicle?',
+        'This also deletes all its local records.',
+      )) {
+        return;
+      }
+    }
+    try {
+      if (action == 'Delete') {
+        await widget.store.deleteVehicle(vehicle.id!);
+      } else {
+        await widget.store.archiveVehicle(vehicle.id!, !vehicle.archived);
+      }
+      if (mounted) refresh();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not update this vehicle.')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('EV Vehicle Tracker')),
+    appBar: AppBar(title: const Text('Garage')),
     floatingActionButton: FloatingActionButton.extended(
-      onPressed: _addVehicle, icon: const Icon(Icons.add), label: const Text('Add EV')),
-    body: _loading ? const Center(child: CircularProgressIndicator()) :
-      ListView(padding: const EdgeInsets.all(16), children: [
-        Card(child: ListTile(
-          leading: const Icon(Icons.route),
-          title: const Text('Trip energy estimator'),
-          subtitle: const Text('Offline estimate; no live charging stations yet'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: _openTripPlanner,
-        )),
-        const SizedBox(height: 8),
-        if (_vehicles.isEmpty)
-          const Padding(padding: EdgeInsets.all(24), child: Text('No EVs yet. Add an electric car or scooter.')),
-        for (final vehicle in _vehicles)
-          Card(child: ListTile(
-            leading: Icon(vehicle.type == VehicleType.car ? Icons.directions_car : Icons.two_wheeler),
-            title: Text('${vehicle.brand} ${vehicle.model}'),
-            subtitle: Text('${vehicle.batteryKwh} kWh · ${vehicle.type.name}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openVehicle(vehicle),
-          )),
-      ]),
+      onPressed: edit,
+      icon: const Icon(Icons.add),
+      label: const Text('Add EV'),
+    ),
+    body: FutureBuilder<List<EvVehicle>>(
+      future: vehicles,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: TextButton(
+              onPressed: refresh,
+              child: const Text('Could not load garage. Retry'),
+            ),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+          children: [
+            if (snapshot.data!.isEmpty)
+              const ListTile(
+                title: Text('Add your first electric car or scooter'),
+              ),
+            for (final vehicle in snapshot.data!)
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    vehicle.type == VehicleType.car
+                        ? Icons.directions_car
+                        : Icons.two_wheeler,
+                  ),
+                  title: Text(vehicleName(vehicle)),
+                  subtitle: Text(
+                    '${vehicle.batteryKwh} kWh · ${vehicle.odometerKm} km${vehicle.archived ? ' · Archived' : ''}',
+                  ),
+                  onTap: () => Navigator.push<void>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VehicleRecordsScreen(
+                        store: widget.store,
+                        vehicle: vehicle,
+                      ),
+                    ),
+                  ),
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (action) => manage(action, vehicle),
+                    itemBuilder: (_) => [
+                      for (final action in [
+                        'Edit',
+                        vehicle.archived ? 'Unarchive' : 'Archive',
+                        'Delete',
+                      ])
+                        PopupMenuItem(value: action, child: Text(action)),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+class VehicleEditor extends StatefulWidget {
+  const VehicleEditor({super.key, required this.store, this.vehicle});
+  final LocalStore store;
+  final EvVehicle? vehicle;
+
+  @override
+  State<VehicleEditor> createState() => _VehicleEditorState();
+}
+
+class _VehicleEditorState extends State<VehicleEditor> {
+  late var type = widget.vehicle?.type ?? VehicleType.scooter;
+  late final brand = TextEditingController(text: widget.vehicle?.brand);
+  late final model = TextEditingController(text: widget.vehicle?.model);
+  late final variant = TextEditingController(text: widget.vehicle?.variant);
+  late final connector = TextEditingController(text: widget.vehicle?.connector);
+  late final battery = TextEditingController(
+    text: widget.vehicle?.batteryKwh.toString(),
+  );
+  late final odometer = TextEditingController(
+    text: (widget.vehicle?.odometerKm ?? 0).toString(),
+  );
+  bool saving = false;
+  String? error;
+
+  @override
+  void dispose() {
+    for (final field in [brand, model, variant, connector, battery, odometer]) {
+      field.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> save() async {
+    final vehicle = EvVehicle(
+      id: widget.vehicle?.id,
+      type: type,
+      brand: brand.text.trim(),
+      model: model.text.trim(),
+      variant: variant.text.trim(),
+      connector: connector.text.trim(),
+      batteryKwh: double.tryParse(battery.text) ?? double.nan,
+      odometerKm: double.tryParse(odometer.text) ?? double.nan,
+      archived: widget.vehicle?.archived ?? false,
+    );
+    setState(() {
+      saving = true;
+      error = null;
+    });
+    try {
+      if (vehicle.id == null) {
+        await widget.store.addVehicle(vehicle);
+      } else {
+        await widget.store.updateVehicle(vehicle);
+      }
+      if (mounted) Navigator.pop(context, true);
+    } catch (failure) {
+      if (mounted) {
+        setState(() {
+          saving = false;
+          error = failure is FormatException
+              ? failure.message
+              : 'Could not save vehicle.';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(widget.vehicle == null ? 'Add EV' : 'Edit vehicle'),
+    ),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        DropdownButtonFormField<VehicleType>(
+          initialValue: type,
+          decoration: const InputDecoration(labelText: 'Vehicle type'),
+          items: VehicleType.values
+              .map(
+                (value) =>
+                    DropdownMenuItem(value: value, child: Text(value.name)),
+              )
+              .toList(),
+          onChanged: saving
+              ? null
+              : (value) => setState(() => type = value ?? type),
+        ),
+        editorField(brand, 'Brand'),
+        editorField(model, 'Model'),
+        editorField(variant, 'Variant (optional)'),
+        editorField(battery, 'Usable battery capacity (kWh)', numeric: true),
+        editorField(odometer, 'Odometer (km)', numeric: true),
+        editorField(connector, 'Connector (optional, e.g. Type 2 or CCS2)'),
+        if (error != null)
+          Text(
+            error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        FilledButton(
+          onPressed: saving ? null : save,
+          child: Text(saving ? 'Saving…' : 'Save'),
+        ),
+      ],
+    ),
   );
 }
 
 class VehicleRecordsScreen extends StatefulWidget {
-  const VehicleRecordsScreen({super.key, required this.vehicle, required this.store});
-  final EvVehicle vehicle;
+  const VehicleRecordsScreen({
+    super.key,
+    required this.store,
+    required this.vehicle,
+    this.category,
+  });
   final LocalStore store;
+  final EvVehicle vehicle;
+  final RecordCategory? category;
+
   @override
   State<VehicleRecordsScreen> createState() => _VehicleRecordsScreenState();
 }
 
 class _VehicleRecordsScreenState extends State<VehicleRecordsScreen> {
-  List<OwnershipRecord> _records = [];
+  late Future<List<OwnershipRecord>> records = widget.store.recordsFor(
+    widget.vehicle.id!,
+  );
+  void refresh() =>
+      setState(() => records = widget.store.recordsFor(widget.vehicle.id!));
 
-  @override
-  void initState() { super.initState(); _refresh(); }
-
-  Future<void> _refresh() async {
-    final items = await widget.store.recordsFor(widget.vehicle.id!);
-    if (mounted) setState(() => _records = items);
-  }
-
-  Future<void> _addRecord() async {
-    final title = TextEditingController();
-    final amount = TextEditingController();
-    final notes = TextEditingController();
-    var category = RecordCategory.charging;
-    final result = await showDialog<OwnershipRecord>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add ownership record'),
-          content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            DropdownButtonFormField<RecordCategory>(
-              initialValue: category,
-              items: RecordCategory.values.map((c) => DropdownMenuItem(value: c, child: Text(c.name))).toList(),
-              onChanged: (value) => setDialogState(() => category = value ?? category),
-            ),
-            TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
-            TextField(controller: amount, keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Amount (₹)')),
-            TextField(controller: notes, decoration: const InputDecoration(labelText: 'Notes')),
-          ])),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-            FilledButton(onPressed: () {
-              final parsed = double.tryParse(amount.text.trim().isEmpty ? '0' : amount.text.trim());
-              if (title.text.trim().isEmpty || parsed == null || !parsed.isFinite || parsed < 0) return;
-              Navigator.pop(context, OwnershipRecord(
-                vehicleId: widget.vehicle.id!, category: category,
-                title: title.text.trim(), amountMinor: (parsed * 100).round(),
-                createdAt: DateTime.now(), notes: notes.text.trim(),
-              ));
-            }, child: const Text('Save')),
-          ],
+  Future<void> edit([OwnershipRecord? record]) async {
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecordEditor(
+          store: widget.store,
+          vehicle: widget.vehicle,
+          initialCategory: widget.category,
+          record: record,
         ),
       ),
     );
-    title.dispose(); amount.dispose(); notes.dispose();
-    if (result != null) {
-      await widget.store.addRecord(result);
-      await _refresh();
-    }
+    if (mounted && saved == true) refresh();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final sum = _records.fold<int>(0, (total, item) => total + item.amountMinor);
-    return Scaffold(
-      appBar: AppBar(title: Text('${widget.vehicle.brand} ${widget.vehicle.model}')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addRecord, icon: const Icon(Icons.add), label: const Text('Add record')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Card(child: ListTile(title: const Text('Recorded costs'),
-          subtitle: Text('₹${(sum / 100).toStringAsFixed(2)} · ${_records.length} entries'))),
-        for (final record in _records)
-          Card(child: ListTile(
-            title: Text(record.title),
-            subtitle: Text('${record.category.name} · ${record.createdAt.toLocal().toString().split(' ').first}'),
-            trailing: Text('₹${(record.amountMinor / 100).toStringAsFixed(2)}'),
-          )),
-      ]),
-    );
-  }
-}
-
-class TripEstimateScreen extends StatefulWidget {
-  const TripEstimateScreen({super.key});
-  @override
-  State<TripEstimateScreen> createState() => _TripEstimateScreenState();
-}
-
-class _TripEstimateScreenState extends State<TripEstimateScreen> {
-  final prompt = TextEditingController();
-  final distance = TextEditingController();
-  final battery = TextEditingController();
-  final efficiency = TextEditingController();
-  final charge = TextEditingController();
-  String feedback = '';
-
-  @override
-  void dispose() {
-    prompt.dispose(); distance.dispose(); battery.dispose();
-    efficiency.dispose(); charge.dispose(); super.dispose();
-  }
-
-  void _estimate() {
-    final parsed = parseTripPrompt(prompt.text);
-    final km = double.tryParse(distance.text);
-    final kwh = double.tryParse(battery.text);
-    final wh = double.tryParse(efficiency.text);
-    final soc = double.tryParse(charge.text) ?? parsed?.socPercent;
-    if (km == null || kwh == null || wh == null || soc == null ||
-        !km.isFinite || !kwh.isFinite || !wh.isFinite || !soc.isFinite) {
-      setState(() => feedback = 'Enter valid distance, battery, efficiency and charge values.');
-      return;
-    }
+  Future<void> delete(OwnershipRecord record) async {
+    if (!await confirmAction(context, 'Delete record?', record.title)) return;
     try {
-      final result = estimateJourney(distanceKm: km, batteryKwh: kwh,
-        whPerKm: wh, departureSocPercent: soc,
-        reservePercent: parsed?.reservePercent ?? 20);
-      setState(() => feedback = '${parsed == null ? 'Manual estimate' : '${parsed.origin} → ${parsed.destination}'}\n'
-        'Energy: ${result.energyKwh.toStringAsFixed(2)} kWh\n'
-        'Arrival SOC: ${result.arrivalSocPercent.toStringAsFixed(1)}%\n'
-        '${result.feasible ? 'Within selected reserve' : 'Below reserve: charging stop needed'}\n'
-        'Estimate only; no routing, terrain or charger verification.');
-    } on ArgumentError {
-      setState(() => feedback = 'Invalid values. Check battery, range and reserve.');
+      await widget.store.deleteRecord(record.id!, record.vehicleId);
+      if (mounted) refresh();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not delete record.')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Trip energy estimator')),
-    body: ListView(padding: const EdgeInsets.all(16), children: [
-      TextField(controller: prompt, decoration: const InputDecoration(
-        labelText: 'Optional prompt', hintText: 'from Kochi to Thrissur with 60% keep 20%')),
-      TextField(controller: distance, keyboardType: TextInputType.number,
-        decoration: const InputDecoration(labelText: 'Route distance (km)')),
-      TextField(controller: battery, keyboardType: TextInputType.number,
-        decoration: const InputDecoration(labelText: 'Usable battery capacity (kWh)')),
-      TextField(controller: efficiency, keyboardType: TextInputType.number,
-        decoration: const InputDecoration(labelText: 'Observed efficiency (Wh/km)')),
-      TextField(controller: charge, keyboardType: TextInputType.number,
-        decoration: const InputDecoration(labelText: 'Departure charge % (optional if prompt includes it)')),
-      const SizedBox(height: 16),
-      FilledButton(onPressed: _estimate, child: const Text('Estimate')),
-      if (feedback.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 16),
-        child: Text(feedback)),
-    ]),
+    appBar: AppBar(title: Text(vehicleName(widget.vehicle))),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: edit,
+      icon: const Icon(Icons.add),
+      label: const Text('Add record'),
+    ),
+    body: FutureBuilder<List<OwnershipRecord>>(
+      future: records,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: TextButton(
+              onPressed: refresh,
+              child: const Text('Could not load records. Retry'),
+            ),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final visible = snapshot.data!.where(
+          (record) =>
+              widget.category == null || record.category == widget.category,
+        );
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+          children: [
+            if (visible.isEmpty) const ListTile(title: Text('No entries yet')),
+            for (final record in visible)
+              Card(
+                child: ListTile(
+                  title: Text(record.title),
+                  subtitle: Text(
+                    [
+                      categoryLabel(record.category),
+                      dateLabel(record.createdAt),
+                      if (record.detail.isNotEmpty) record.detail,
+                      if (record.amountMinor > 0)
+                        '${money(record.amountMinor)}${record.paid ? '' : ' due'}',
+                      if (record.energyKwh != null) '${record.energyKwh} kWh',
+                      if (record.distanceKm != null) '${record.distanceKm} km',
+                      if (record.whPerKm != null)
+                        '${record.whPerKm!.toStringAsFixed(1)} Wh/km',
+                      if (record.dueDate != null)
+                        'Due ${dateLabel(record.dueDate!)}',
+                    ].join(' · '),
+                  ),
+                  onTap: () => edit(record),
+                  trailing: IconButton(
+                    tooltip: 'Delete ${record.title}',
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => delete(record),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    ),
   );
 }
