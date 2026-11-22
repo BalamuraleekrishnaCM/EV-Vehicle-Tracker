@@ -1,7 +1,12 @@
 /// A read-only, capability-gated vehicle integration boundary.
 ///
 /// No transport or manufacturer implementation is implied by this interface.
-enum VehicleTelemetryField { stateOfCharge, odometerKm, rangeKm, batteryTemperatureC }
+enum VehicleTelemetryField {
+  stateOfCharge,
+  odometerKm,
+  rangeKm,
+  batteryTemperatureC,
+}
 
 class VehicleObservation {
   const VehicleObservation({

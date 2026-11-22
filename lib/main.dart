@@ -13,9 +13,9 @@ class EvTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'EV Vehicle Tracker',
-        debugShowCheckedModeBanner: false,
-        theme: buildEvTheme(),
-        home: DashboardShell(store: LocalStore.instance),
-      );
+    title: 'EV Vehicle Tracker',
+    debugShowCheckedModeBanner: false,
+    theme: buildEvTheme(),
+    home: DashboardShell(store: LocalStore.instance),
+  );
 }

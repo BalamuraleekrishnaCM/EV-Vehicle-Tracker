@@ -3,6 +3,15 @@
 > Source of truth for delivery work. See [ROADMAP.md](ROADMAP.md), [GitHub Issues](https://github.com/BalamuraleekrishnaCM/EV-Vehicle-Tracker/issues), and [implementation status](docs/IMPLEMENTATION_STATUS.md).
 > Checked boxes require verified tests/builds, not merely committed code.
 
+## Current implementation branch
+
+The Flutter app now has car and scooter profile management, structured logs,
+fixed installments, in-app due dates, paid-cost reports, backup and export,
+nearby charger lookup, and configurable road routing. Review the
+[implementation status](docs/IMPLEMENTATION_STATUS.md) for coverage and open
+integration work. Broad checklist items below remain open when they include
+unverified platform requirements or functionality beyond this implementation.
+
 ## P0 — Make foundation buildable
 - [x] Add initial Flutter source, SQLite schema, basic UI, domain calculations and unit-test source (PR #1; **unverified**).
 - [x] Add CI workflow, contribution templates, CODEOWNERS and SDLC documentation (PR #1; enforcement pending).

@@ -15,6 +15,14 @@ void main() {
     expect(estimate.feasible, isTrue);
   });
   test('rejects invalid battery capacity', () {
-    expect(() => estimateJourney(distanceKm: 20, batteryKwh: 0, whPerKm: 100, departureSocPercent: 80), throwsArgumentError);
+    expect(
+      () => estimateJourney(
+        distanceKm: 20,
+        batteryKwh: 0,
+        whPerKm: 100,
+        departureSocPercent: 80,
+      ),
+      throwsArgumentError,
+    );
   });
 }

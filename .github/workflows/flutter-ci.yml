@@ -3,7 +3,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -13,6 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.38.9
           channel: stable
           cache: true
       - name: Dependencies
@@ -23,3 +23,5 @@ jobs:
         run: flutter analyze
       - name: Unit tests
         run: flutter test
+      - name: Android debug build
+        run: flutter build apk --debug
